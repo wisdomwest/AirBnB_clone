@@ -11,10 +11,26 @@ import uuid
 class BaseModel:
     """BaseModel class defines methods"""
 
-    def __init__(self):
-        self.id = str(uuid.uuid4())
-        self.created_at = datetime.now()
-        self.updated_at = datetime.now()
+    def __init__(self, *args, **kwargs):
+        """Create an istance of base model from a dictionary rep of to_dict.
+        Else create normal public instances.
+
+        Args:
+            *args: non-keyworded arguments.
+            **kwargs: Key worded args.
+        """
+
+        if kwargs:
+            for key, value in kwargs.items():
+                if key != '__class__':
+                    if key in ['created_at', 'updated_at']:
+                        setattr(self, key, datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f"))
+                    else:
+                        setattr(self, key, value)
+        else:
+            self.id = str(uuid.uuid4())
+            self.created_at = datetime.now()
+            self.updated_at = datetime.now()
 
     def __str__(self):
         """print: [<class name>] (<self.id>) <self.__dict__>"""
