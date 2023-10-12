@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 """Entry point to the command line, Our user interface."""
 
-
 import cmd
 import sys
+
 
 class HBNBCommand(cmd.Cmd):
     """A class defination to create a custom command intepreter.
@@ -24,11 +24,12 @@ class HBNBCommand(cmd.Cmd):
 
         print("")
         return True
-    
+
     def emptyline(self):
         """Disable last command repetition if no command is entered."""
 
         pass
+
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
