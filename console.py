@@ -7,6 +7,12 @@ import os
 import json
 from models.base_model import BaseModel
 from models import storage
+from models.user import User
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
 
 
 class HBNBCommand(cmd.Cmd):
@@ -19,7 +25,13 @@ class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
     instances = {}
     classes = {
-            'BaseModel': BaseModel
+            "BaseModel": BaseModel,
+            "User": User,
+            "State": State,
+            "City": City,
+            "Amenity": Amenity,
+            "Place": Place,
+            "Review": Review
             }
 
     def do_create(self, arg):
@@ -34,15 +46,12 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
         try:
-            cls = globals().get(arg)
-            if cls in HBNBCommand.classes:
-                instance = HBNBCommand.classes[cls]()
-                instance.save()
-                print(instance.id)
-            else:
+            cls = self.classes[arg]
+            instance = cls()
+            instance.save()
+            print(instance.id)
+        except KeyError:
                 print("** class doesn't exist **")
-        except Exception as e:
-            print(str(e))
 
     def do_show(self, line):
         """A command that prints the string representation of an instance
@@ -53,11 +62,11 @@ class HBNBCommand(cmd.Cmd):
         """
 
         args = line.split()
-        if len(args) < 1:
+        if not args:
             print("** class name missing **")
             return
         class_name = args[0]
-        if class_name not in HBNBCommand.classes:
+        if class_name not in self.classes:
             print("** class doesn't exist **")
             return
         if len(args) < 2:
@@ -87,7 +96,7 @@ class HBNBCommand(cmd.Cmd):
         if len(args) > 1:
             instance_id = args[1]
 
-        if class_name not in HBNBCommand.classes:
+        if class_name not in self.classes:
             print("** class doesn't exist **")
             return
 
@@ -117,7 +126,7 @@ class HBNBCommand(cmd.Cmd):
         args = arg.split()
         if not args:
             print([str(obj) for obj in storage.all().values()])
-        elif args[0] in HBNBCommand.classes:
+        elif args[0] in self.classes:
             class_name = args[0]
             print([str(obj) for key, obj in storage.all().items() if class_name in key])
         else:
@@ -146,7 +155,7 @@ class HBNBCommand(cmd.Cmd):
 
         instance_id = args[1]
 
-        if class_name not in HBNBCommand.classes:
+        if class_name not in self.classes:
             print("** class doesn't exist **")
             return
 
@@ -198,7 +207,6 @@ class HBNBCommand(cmd.Cmd):
         """Disable last command repetition if no command is entered."""
 
         pass
-
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()

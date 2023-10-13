@@ -30,7 +30,7 @@ class FileStorage:
             json.dump(data, f)
 
     def reload(self):
-        """deserializes the JSON file"""
+        """deserializes the JSON file."""
         from models.base_model import BaseModel
         from models.user import User
         from models.state import State
@@ -47,11 +47,20 @@ class FileStorage:
                    "Place": Place,
                    "Review": Review}
 
-        try:
-            data = {}
-            with open(FileStorage.__file_path, 'r') as f:
-                data = json.load(f)
-                for key, value in data.items():
-                    self.all()[key] = classes[value['__class__']](**value)
-        except FileNotFoundError:
-            pass
+        if not os.path.exists(FileStorage.__file_path):
+            return
+
+        with open(FileStorage.__file_path, 'r') as f:
+            deserialized = None
+
+            try:
+                deserialized = json.load(f)
+            except json.JSONDecodeError:
+                pass
+
+            if deserialized is None:
+                return
+
+            FileStorage.__objects = {
+                k: classes[k.split('.')[0]](**v)
+                for k, v in deserialized.items()}
