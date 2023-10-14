@@ -51,7 +51,7 @@ class HBNBCommand(cmd.Cmd):
             instance.save()
             print(instance.id)
         except KeyError:
-                print("** class doesn't exist **")
+            print("** class doesn't exist **")
 
     def do_show(self, line):
         """A command that prints the string representation of an instance
@@ -128,7 +128,8 @@ class HBNBCommand(cmd.Cmd):
             print([str(obj) for obj in storage.all().values()])
         elif args[0] in self.classes:
             class_name = args[0]
-            print([str(obj) for key, obj in storage.all().items() if class_name in key])
+            print([str(obj) for key, obj in storage.all().items()
+                   if class_name in key])
         else:
             print("** class doesn't exist **")
 
@@ -188,7 +189,8 @@ class HBNBCommand(cmd.Cmd):
                             except (NameError, SyntaxError):
                                 print("** invalid value for the attribute **")
                     else:
-                        print("** attribute name is not valid or can't be updated **")
+                        print("** attribute name is not valid or \
+                                can't be updated **")
         else:
             print("** no instance found **")
 
@@ -207,6 +209,7 @@ class HBNBCommand(cmd.Cmd):
         """Disable last command repetition if no command is entered."""
 
         pass
+
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
