@@ -129,7 +129,6 @@ class HBNBCommand(cmd.Cmd):
             return
 
         class_name = args[0]
-        instance_id = None
 
         if len(args) < 2:
             print("** instance id missing **")
@@ -141,15 +140,12 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
             return
 
-        cls = globals()[class_name]
+        cls = self.classes.get(class_name)
 
         if not instance_id:
             print("** instance id missing **")
             return
 
-        if not issubclass(cls, BaseModel):
-            print("** class doesn't exist **")
-            return
         key = class_name + "." + instance_id
         if key in storage.all():
             if len(args) < 3:
@@ -162,18 +158,17 @@ class HBNBCommand(cmd.Cmd):
                     attribute_value = args[3]
                     obj = storage.all()[key]
                     if hasattr(obj, attribute_name):
-                        if True:
-                            try:
-                                attribute_value = eval(attribute_value)
-                                setattr(obj, attribute_name, attribute_value)
-                                storage.save()
-                            except (NameError, SyntaxError):
-                                print("** invalid value for the attribute **")
-                    else:
-                        print("** attribute name is not valid or \
-                                can't be updated **")
-        else:
-            print("** no instance found **")
+                        try:
+                            if isinstance(getattr(obj, attribute_name), int):
+                                attribute_value = int(attribute_value)
+                            elif isinstance(getattr(obj, attribute_name), float):
+                                attribute_value = float(attribute_value)
+                            setattr(obj, attribute_name, attribute_value)
+                            storage.save()
+                        except (TypeError, ValueError):
+                            print("** invalid value for the attribute **")
+                        else:
+                            print("** attribute name is not valid or can't be updated **")
 
     def do_quit(self, arg):
         """Quit command to exit the program."""
@@ -190,7 +185,6 @@ class HBNBCommand(cmd.Cmd):
         """Disable last command repetition if no command is entered."""
 
         pass
-
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()
