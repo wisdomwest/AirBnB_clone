@@ -2,6 +2,7 @@
 """Entry point to the command line, Our user interface."""
 
 import cmd
+import re
 import sys
 import os
 import json
@@ -35,13 +36,9 @@ class HBNBCommand(cmd.Cmd):
             }
 
     def do_create(self, arg):
-        """A command that creates a new instance of BaseModel,
-        saves it (to the JSON file) and prints the id.
-
-        Args:
-            arg: A class name from Basemodel.
+        """Usage: create <class>
+        Create a new class instance and print its id.
         """
-
         if not arg:
             print("** class name missing **")
             return
@@ -54,13 +51,9 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
 
     def do_show(self, line):
-        """A command that prints the string representation of an instance
-        based on the class name and id.
-
-        Args:
-            line: The command entered by the user.
+        """Usage: show <class> <id> or <class>.show(<id>)
+        Display the string representation of class instance of a id.
         """
-
         args = line.split()
         if not args:
             print("** class name missing **")
@@ -80,12 +73,8 @@ class HBNBCommand(cmd.Cmd):
             print("** no instance found **")
 
     def do_destroy(self, arg):
-        """Deletes an instance based on the class and id.
-
-        Args:
-            arg: Argumants passed to the command.
-        """
-
+         """Usage: destroy <class> <id> or <class>.destroy(<id>)
+        Delete a class instance of a id."""
         args = arg.split()
 
         if not args:
@@ -116,13 +105,9 @@ class HBNBCommand(cmd.Cmd):
             print("** no instance found **")
 
     def do_all(self, arg):
-        """Prints a string representation of all instances base or
-        not on the class name.
-
-        Args:
-            arg: Argument passed to the command.
+        """Usage: all or all <class> or <class>.all()
+        Display string representations of all instances of a given class.
         """
-
         args = arg.split()
         if not args:
             print([str(obj) for obj in storage.all().values()])
@@ -134,65 +119,52 @@ class HBNBCommand(cmd.Cmd):
             print("** class doesn't exist **")
 
     def do_update(self, arg):
-        """Updates an instance based on the class name and id by adding or
-        updating attribute.
+        """Usage: update <class> <id> <attribute_name> <attribute_value> or
+       <class>.update(<id>, <attribute_name>, <attribute_value>)
+        Update a class instance of a given id by adding or updating
+        a given attribute key/value pair or dictionary."""
+        argl = parse(arg)
+        objdict = storage.all()
 
-        Args:
-            arg: Argument given to the command.
-        """
-
-        args = arg.split()
-
-        if not args:
+        if len(argl) == 0:
             print("** class name missing **")
-            return
-
-        class_name = args[0]
-        instance_id = None
-
-        if len(args) < 2:
-            print("** instance id missing **")
-            return
-
-        instance_id = args[1]
-
-        if class_name not in self.classes:
+            return False
+        if argl[0] not in HBNBCommand.__classes:
             print("** class doesn't exist **")
-            return
-
-        cls = globals()[class_name]
-
-        if not instance_id:
+            return False
+        if len(argl) == 1:
             print("** instance id missing **")
-            return
-
-        if not issubclass(cls, BaseModel):
-            print("** class doesn't exist **")
-            return
-        key = class_name + "." + instance_id
-        if key in storage.all():
-            if len(args) < 3:
-                print("** attribute name missing **")
-            else:
-                attribute_name = args[2]
-                if len(args) < 4:
-                    print("** value missing **")
-                else:
-                    attribute_value = args[3]
-                    obj = storage.all()[key]
-                    if hasattr(obj, attribute_name):
-                        if True:
-                            try:
-                                attribute_value = eval(attribute_value)
-                                setattr(obj, attribute_name, attribute_value)
-                                storage.save()
-                            except (NameError, SyntaxError):
-                                print("** invalid value for the attribute **")
-                    else:
-                        print("** attribute name is not valid or \
-                                can't be updated **")
-        else:
+            return False
+        if "{}.{}".format(argl[0], argl[1]) not in objdict.keys():
             print("** no instance found **")
+            return False
+        if len(argl) == 2:
+            print("** attribute name missing **")
+            return False
+        if len(argl) == 3:
+            try:
+                type(eval(argl[2])) != dict
+            except NameError:
+                print("** value missing **")
+                return False
+
+        if len(argl) == 4:
+            obj = objdict["{}.{}".format(argl[0], argl[1])]
+            if argl[2] in obj.__class__.__dict__.keys():
+                valtype = type(obj.__class__.__dict__[argl[2]])
+                obj.__dict__[argl[2]] = valtype(argl[3])
+            else:
+                obj.__dict__[argl[2]] = argl[3]
+        elif type(eval(argl[2])) == dict:
+            obj = objdict["{}.{}".format(argl[0], argl[1])]
+            for k, v in eval(argl[2]).items():
+                if (k in obj.__class__.__dict__.keys() and
+                        type(obj.__class__.__dict__[k]) in {str, int, float}):
+                    valtype = type(obj.__class__.__dict__[k])
+                    obj.__dict__[k] = valtype(v)
+                else:
+                    obj.__dict__[k] = v
+        storage.save()
 
     def do_quit(self, arg):
         """Quit command to exit the program."""
