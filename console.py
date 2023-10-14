@@ -109,7 +109,6 @@ class HBNBCommand(cmd.Cmd):
         Display string representations of all instances of a given class.
         """
         args = arg.split()
-        
         if not args:
             print([str(obj) for obj in storage.all().values()])
         elif args[0] in self.classes:
@@ -174,7 +173,7 @@ class HBNBCommand(cmd.Cmd):
                         print("** attribute name is not valid or \
                                 can't be updated **")
         else:
-             print("** no instance found **")
+            print("** no instance found **")
 
     def do_quit(self, arg):
         """Quit command to exit the program."""
